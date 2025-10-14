@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chess Pawns</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f4f4f9;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .pawn-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .pawn-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 15px;
+      text-align: center;
+    }
+    .pawn-card img {
+      max-width: 100px;
+      height: auto;
+      margin-bottom: 10px;
+    }
+    .pawn-card h2 {
+      font-size: 1.5em;
+      margin: 10px 0;
+      color: #2c3e50;
+    }
+    .pawn-card p {
+      font-size: 1em;
+      color: #555;
+      margin-bottom: 15px;
+    }
+    .examples {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .examples img {
+      max-width: 150px;
+      height: auto;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .error {
+      color: red;
+      text-align: center;
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chess Pawns</h1>
+  <div id="pawn-grid" class="pawn-grid"></div>
+  <p id="error" class="error" style="display: none;"></p>
+
+  <script>
+    // URL to the JSON file on GitHub
+    const jsonUrl = 'https://raw.githubusercontent.com/username/repo/main/pawns.json';
+
+    // Fetch and display pawns
+    async function loadPawns() {
+      try {
+        const response = await fetch(jsonUrl);
+        if (!response.ok) throw new Error('Failed to load pawn data');
+        const pawns = await response.json();
+        const pawnGrid = document.getElementById('pawn-grid');
+
+        pawns.forEach(pawn => {
+          const pawnCard = document.createElement('div');
+          pawnCard.className = 'pawn-card';
+          pawnCard.innerHTML = `
+            <img src="${pawn.image}" alt="${pawn.name}" onerror="this.src='https://via.placeholder.com/100?text=Pawn'">
+            <h2>${pawn.name}</h2>
+            <p>${pawn.description}</p>
+            <div class="examples">
+              ${pawn.examples.map(example => `
+                <img src="${example}" alt="${pawn.name} example" onerror="this.src='https://via.placeholder.com/150?text=Example'">
+              `).join('')}
+            </div>
+          `;
+          pawnGrid.appendChild(pawnCard);
+        });
+      } catch (error) {
+        const errorElement = document.getElementById('error');
+        errorElement.textContent = 'Error loading pawn data: ' + error.message;
+        errorElement.style.display = 'block';
+      }
+    }
+
+    // Load pawns when the page loads
+    window.onload = loadPawns;
+  </script>
+</body>
+</html>
