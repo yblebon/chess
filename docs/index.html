@@ -3,106 +3,168 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chess Pieces</title>
+  <title>Optimized Chess Gallery</title>
+  
+  <link rel="preconnect" href="https://raw.githubusercontent.com">
+  <link rel="preconnect" href="https://via.placeholder.com">
+
   <style>
+    :root {
+      --card-bg: #ffffff;
+      --text-main: #333;
+      --text-muted: #666;
+      --shimmer: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
-      background-color: #f4f4f9;
+      background-color: #f8f9fa;
     }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
+
     .pawn-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
+      gap: 24px;
+      min-height: 400px; /* Prevents footer jump */
     }
+
     .pawn-card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      padding: 15px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 20px;
       text-align: center;
+      transition: transform 0.2s ease;
     }
+
+    .pawn-card:hover { transform: translateY(-4px); }
+
     .pawn-card img {
       max-width: 100px;
-      height: auto;
-      margin-bottom: 10px;
-    }
-    .pawn-card h2 {
-      font-size: 1.5em;
-      margin: 10px 0;
-      color: #2c3e50;
-    }
-    .pawn-card p {
-      font-size: 1em;
-      color: #555;
+      height: 100px;
+      object-fit: contain;
       margin-bottom: 15px;
+      background: #eee; /* Temporary background while loading */
     }
+
     .examples {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
+      margin-top: 15px;
     }
+
     .examples img {
-      max-width: 150px;
-      height: auto;
-      border: 1px solid #ddd;
+      width: 80px;
+      height: 80px;
+      border-radius: 6px;
+    }
+
+    /* 2. Skeleton Loader Styles */
+    .skeleton {
+      background: #eee;
+      background: var(--shimmer);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
       border-radius: 4px;
     }
-    .error {
-      color: red;
-      text-align: center;
-      font-size: 1.2em;
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
+
+    .sk-img { width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 15px; }
+    .sk-title { width: 60%; height: 24px; margin: 0 auto 10px; }
+    .sk-desc { width: 90%; height: 16px; margin: 0 auto; }
+
+    .error { color: #d93025; text-align: center; padding: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
+
   <h1>Chess Pieces</h1>
-  <div id="pawn-grid" class="pawn-grid"></div>
+  
+  <div id="pawn-grid" class="pawn-grid">
+    <div class="pawn-card"><div class="skeleton sk-img"></div><div class="skeleton sk-title"></div><div class="skeleton sk-desc"></div></div>
+    <div class="pawn-card"><div class="skeleton sk-img"></div><div class="skeleton sk-title"></div><div class="skeleton sk-desc"></div></div>
+    <div class="pawn-card"><div class="skeleton sk-img"></div><div class="skeleton sk-title"></div><div class="skeleton sk-desc"></div></div>
+  </div>
+
   <p id="error" class="error" style="display: none;"></p>
 
   <script>
-    // URL to the JSON file on GitHub
     const jsonUrl = 'https://raw.githubusercontent.com/yblebon/datasources/main/chess.json';
 
-    // Fetch and display pawns
+    // Helper to create elements with attributes in one go
+    function el(tag, attrs = {}, text = '') {
+      const e = document.createElement(tag);
+      Object.assign(e, attrs);
+      if (text) e.textContent = text;
+      return e;
+    }
+
     async function loadPawns() {
+      const pawnGrid = document.getElementById('pawn-grid');
+      const errorElement = document.getElementById('error');
+
       try {
         const response = await fetch(jsonUrl);
-        if (!response.ok) throw new Error('Failed to load pawn data');
+        if (!response.ok) throw new Error('Network response was not ok');
         const pawns = await response.json();
-        const pawnGrid = document.getElementById('pawn-grid');
+
+        // 3. DocumentFragment: Batch updates to prevent multiple reflows
+        
+        const fragment = document.createDocumentFragment();
 
         pawns.forEach(pawn => {
-          const pawnCard = document.createElement('div');
-          pawnCard.className = 'pawn-card';
-          pawnCard.innerHTML = `
-            <img src="${pawn.image}" alt="${pawn.name}" onerror="this.src='https://via.placeholder.com/100?text=Pawn'">
-            <h2>${pawn.name}</h2>
-            <p>${pawn.description}</p>
-            <div class="examples">
-              ${pawn.examples.map(example => `
-                <img src="${example}" alt="${pawn.name} example" onerror="this.src='https://via.placeholder.com/150?text=Example'">
-              `).join('')}
-            </div>
-          `;
-          pawnGrid.appendChild(pawnCard);
+          const card = el('div', { className: 'pawn-card' });
+          
+          // Main Image with Performance Attributes
+          const mainImg = el('img', {
+            src: pawn.image,
+            alt: pawn.name,
+            loading: 'lazy',     // Only load when visible
+            decoding: 'async',   // Don't block UI thread
+            onerror: function() { this.src = 'https://via.placeholder.com/100?text=Chess'; }
+          });
+
+          const title = el('h2', {}, pawn.name);
+          const desc = el('p', {}, pawn.description);
+          const exampleContainer = el('div', { className: 'examples' });
+
+          pawn.examples.forEach(exUrl => {
+            const exImg = el('img', {
+              src: exUrl,
+              alt: `${pawn.name} variation`,
+              loading: 'lazy',
+              decoding: 'async',
+              onerror: function() { this.src = 'https://via.placeholder.com/80?text=Alt'; }
+            });
+            exampleContainer.appendChild(exImg);
+          });
+
+          card.append(mainImg, title, desc, exampleContainer);
+          fragment.appendChild(card);
         });
+
+        // Clear skeletons and inject fragment at once
+        pawnGrid.innerHTML = '';
+        pawnGrid.appendChild(fragment);
+
       } catch (error) {
-        const errorElement = document.getElementById('error');
-        errorElement.textContent = 'Error loading pawn data: ' + error.message;
+        pawnGrid.innerHTML = '';
+        errorElement.textContent = 'Failed to load: ' + error.message;
         errorElement.style.display = 'block';
       }
     }
 
-    // Load pawns when the page loads
-    window.onload = loadPawns;
+    // Use DOMContentLoaded for faster execution than window.onload
+    document.addEventListener('DOMContentLoaded', loadPawns);
   </script>
 </body>
 </html>
