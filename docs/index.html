@@ -3,71 +3,303 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Optimized Chess Gallery</title>
-  
-  <link rel="preconnect" href="https://raw.githubusercontent.com">
-  <link rel="preconnect" href="https://via.placeholder.com">
+  <title>Chess Gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --card-bg: #ffffff;
-      --text-main: #333;
-      --text-muted: #666;
-      --shimmer: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      --bg: #0f0e0c;
+      --surface: #1a1815;
+      --surface2: #252220;
+      --gold: #c9a84c;
+      --gold-light: #e8c96e;
+      --cream: #f0e8d8;
+      --muted: #8a7f70;
+      --card-w: 280px;
+      --card-h: 380px;
     }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #f8f9fa;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--cream);
+      min-height: 100vh;
+      padding: 40px 24px 60px;
     }
 
-    .pawn-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 24px;
-      min-height: 400px; /* Prevents footer jump */
-    }
-
-    .pawn-card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      padding: 20px;
+    header {
       text-align: center;
-      transition: transform 0.2s ease;
+      margin-bottom: 48px;
     }
 
-    .pawn-card:hover { transform: translateY(-4px); }
-
-    .pawn-card img {
-      max-width: 100px;
-      height: 100px;
-      object-fit: contain;
-      margin-bottom: 15px;
-      background: #eee; /* Temporary background while loading */
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      color: var(--gold);
+      letter-spacing: 0.04em;
+      line-height: 1.1;
     }
 
-    .examples {
+    header p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .hint-bar {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      margin-bottom: 36px;
+      flex-wrap: wrap;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .hint-icon {
+      width: 18px;
+      height: 18px;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: var(--gold);
+    }
+
+    /* ── Card Grid ── */
+    .pawn-grid {
       display: flex;
       flex-wrap: wrap;
+      gap: 28px;
       justify-content: center;
-      gap: 8px;
-      margin-top: 15px;
+      max-width: 1200px;
+      margin: 0 auto 64px;
     }
 
-    .examples img {
+    /* ── Flip Card ── */
+    .flip-wrapper {
+      width: var(--card-w);
+      height: var(--card-h);
+      perspective: 1000px;
+      cursor: pointer;
+    }
+
+    .flip-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .flip-wrapper.flipped .flip-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    /* Front face */
+    .card-front {
+      background: var(--surface);
+      border: 1px solid #2e2b26;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 20px 20px;
+      transition: border-color 0.2s;
+    }
+
+    .flip-wrapper:hover .card-front {
+      border-color: var(--gold);
+    }
+
+    .card-front .piece-img-wrap {
+      width: 110px;
+      height: 110px;
+      background: var(--surface2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-front .piece-img-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(201,168,76,0.3);
+    }
+
+    .card-front img.main-img {
       width: 80px;
       height: 80px;
-      border-radius: 6px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 8px rgba(201,168,76,0.3));
     }
 
-    /* 2. Skeleton Loader Styles */
-    .skeleton {
-      background: #eee;
-      background: var(--shimmer);
+    .card-front h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      color: var(--gold);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .card-front p.desc {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .examples-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .examples-row img {
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid #2e2b26;
+      transition: border-color 0.2s;
+    }
+
+    .examples-row img:hover {
+      border-color: var(--gold);
+    }
+
+    .flip-cue {
+      margin-top: 14px;
+      font-size: 11px;
+      color: rgba(201,168,76,0.5);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* Back face */
+    .card-back {
+      background: var(--surface2);
+      border: 1px solid var(--gold);
+      transform: rotateY(180deg);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 20px;
+      gap: 12px;
+    }
+
+    .card-back .back-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      color: var(--gold);
+      border-bottom: 1px solid rgba(201,168,76,0.2);
+      padding-bottom: 10px;
+    }
+
+    .info-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .info-label {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .info-value {
+      font-size: 13px;
+      color: var(--cream);
+      line-height: 1.5;
+    }
+
+    .movement-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 3px;
+      width: fit-content;
+      margin-top: 4px;
+    }
+
+    .mv-cell {
+      width: 18px;
+      height: 18px;
+      background: var(--surface);
+      border-radius: 3px;
+    }
+
+    .mv-cell.origin { background: var(--gold); }
+    .mv-cell.move { background: rgba(201,168,76,0.35); }
+
+    .drag-btn {
+      margin-top: auto;
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 9px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .drag-btn:hover {
+      background: var(--gold);
+      color: var(--bg);
+    }
+
+    /* ── Skeleton ── */
+    .pawn-card.skeleton-card {
+      width: var(--card-w);
+      height: var(--card-h);
+      background: var(--surface);
+      border-radius: 16px;
+      border: 1px solid #2e2b26;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 20px 20px;
+      gap: 12px;
+    }
+
+    .sk {
+      background: linear-gradient(90deg, #252220 25%, #302d28 50%, #252220 75%);
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
       border-radius: 4px;
@@ -78,29 +310,405 @@
       100% { background-position: -200% 0; }
     }
 
-    .sk-img { width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 15px; }
-    .sk-title { width: 60%; height: 24px; margin: 0 auto 10px; }
-    .sk-desc { width: 90%; height: 16px; margin: 0 auto; }
+    .sk-circle { width: 110px; height: 110px; border-radius: 50%; }
+    .sk-title { width: 60%; height: 24px; }
+    .sk-desc { width: 90%; height: 14px; }
+    .sk-desc2 { width: 70%; height: 14px; }
 
-    .error { color: #d93025; text-align: center; padding: 20px; font-weight: bold; }
+    /* ── Board Section ── */
+    .board-section {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .board-section h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .board-section .board-sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+
+    .board-controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .board-controls button {
+      background: transparent;
+      border: 1px solid #2e2b26;
+      color: var(--muted);
+      padding: 7px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+
+    .board-controls button:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .board-wrapper {
+      display: flex;
+      justify-content: center;
+    }
+
+    .chess-board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      width: 100%;
+      max-width: 480px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid var(--gold);
+    }
+
+    .board-cell {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(20px, 5vw, 36px);
+      cursor: pointer;
+      transition: background 0.15s;
+      position: relative;
+      user-select: none;
+    }
+
+    .board-cell.light { background: #f0d9b5; }
+    .board-cell.dark  { background: #b58863; }
+    .board-cell.drag-over { background: rgba(201,168,76,0.5) !important; }
+    .board-cell.selected { background: rgba(201,168,76,0.6) !important; outline: 3px inset var(--gold); }
+
+    .piece-on-board {
+      font-size: inherit;
+      line-height: 1;
+      cursor: grab;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+      transition: transform 0.1s;
+    }
+
+    .piece-on-board:active { cursor: grabbing; transform: scale(1.2); }
+
+    /* ── Piece tray ── */
+    .piece-tray {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      padding: 14px;
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid #2e2b26;
+    }
+
+    .tray-piece {
+      width: 44px;
+      height: 44px;
+      background: var(--surface2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      cursor: grab;
+      border: 1px solid #2e2b26;
+      transition: border-color 0.2s, transform 0.15s;
+      user-select: none;
+    }
+
+    .tray-piece:hover {
+      border-color: var(--gold);
+      transform: translateY(-2px);
+    }
+
+    .tray-piece:active { cursor: grabbing; }
+
+    .tray-piece.dragging { opacity: 0.4; }
+
+    .error { color: #e07070; text-align: center; padding: 20px; }
+
+    /* Sound toggle */
+    .sound-toggle {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      z-index: 100;
+    }
+
+    .sound-toggle:hover { background: var(--gold); color: var(--bg); }
   </style>
 </head>
 <body>
 
-  <h1>Chess Pieces</h1>
-  
-  <div id="pawn-grid" class="pawn-grid">
-    <div class="pawn-card"><div class="skeleton sk-img"></div><div class="skeleton sk-title"></div><div class="skeleton sk-desc"></div></div>
-    <div class="pawn-card"><div class="skeleton sk-img"></div><div class="skeleton sk-title"></div><div class="skeleton sk-desc"></div></div>
-    <div class="pawn-card"><div class="skeleton sk-img"></div><div class="skeleton sk-title"></div><div class="skeleton sk-desc"></div></div>
+  <header>
+    <h1>Chess Pieces</h1>
+    <p>An interactive gallery</p>
+  </header>
+
+  <div class="hint-bar">
+    <span class="hint"><span class="hint-icon">↻</span> Click a card to flip</span>
+    <span class="hint"><span class="hint-icon">⊕</span> Send pieces to the board</span>
+    <span class="hint"><span class="hint-icon">⇄</span> Drag pieces to rearrange</span>
   </div>
 
-  <p id="error" class="error" style="display: none;"></p>
+  <div id="pawn-grid" class="pawn-grid">
+    <div class="pawn-card skeleton-card"><div class="sk sk-circle"></div><div class="sk sk-title"></div><div class="sk sk-desc"></div><div class="sk sk-desc2"></div></div>
+    <div class="pawn-card skeleton-card"><div class="sk sk-circle"></div><div class="sk sk-title"></div><div class="sk sk-desc"></div><div class="sk sk-desc2"></div></div>
+    <div class="pawn-card skeleton-card"><div class="sk sk-circle"></div><div class="sk sk-title"></div><div class="sk sk-desc"></div><div class="sk sk-desc2"></div></div>
+  </div>
+
+  <p id="error" class="error" style="display:none;"></p>
+
+  <div class="board-section">
+    <h2>Your Board</h2>
+    <p class="board-sub">Drag pieces from the gallery or use the tray below</p>
+    <div class="board-controls">
+      <button id="btn-reset">Reset board</button>
+      <button id="btn-classic">Classic setup</button>
+    </div>
+    <div class="board-wrapper">
+      <div class="chess-board" id="chess-board"></div>
+    </div>
+    <div class="piece-tray" id="piece-tray"></div>
+  </div>
+
+  <button class="sound-toggle" id="sound-toggle" title="Toggle sound">♪</button>
 
   <script>
+    /* ─── Sound Engine ─── */
+    let soundOn = true;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let actx = null;
+
+    function getCtx() {
+      if (!actx) actx = new AudioCtx();
+      return actx;
+    }
+
+    function playClick() {
+      if (!soundOn) return;
+      try {
+        const ctx = getCtx();
+        const g = ctx.createGain();
+        g.connect(ctx.destination);
+        g.gain.setValueAtTime(0.18, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+
+        const o = ctx.createOscillator();
+        o.type = 'triangle';
+        o.frequency.setValueAtTime(520, ctx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.1);
+        o.connect(g);
+        o.start();
+        o.stop(ctx.currentTime + 0.12);
+      } catch(e) {}
+    }
+
+    function playFlip() {
+      if (!soundOn) return;
+      try {
+        const ctx = getCtx();
+        [0, 0.04, 0.08].forEach((t, i) => {
+          const g = ctx.createGain();
+          g.connect(ctx.destination);
+          g.gain.setValueAtTime(0.12 - i * 0.03, ctx.currentTime + t);
+          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.08);
+          const o = ctx.createOscillator();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(700 + i * 120, ctx.currentTime + t);
+          o.connect(g);
+          o.start(ctx.currentTime + t);
+          o.stop(ctx.currentTime + t + 0.08);
+        });
+      } catch(e) {}
+    }
+
+    function playDrop() {
+      if (!soundOn) return;
+      try {
+        const ctx = getCtx();
+        const g = ctx.createGain();
+        g.connect(ctx.destination);
+        g.gain.setValueAtTime(0.22, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+        const o = ctx.createOscillator();
+        o.type = 'square';
+        o.frequency.setValueAtTime(280, ctx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.15);
+        o.connect(g);
+        o.start();
+        o.stop(ctx.currentTime + 0.18);
+      } catch(e) {}
+    }
+
+    document.getElementById('sound-toggle').addEventListener('click', () => {
+      soundOn = !soundOn;
+      document.getElementById('sound-toggle').textContent = soundOn ? '♪' : '♩';
+      playClick();
+    });
+
+    /* ─── Board Setup ─── */
+    const BOARD_SIZE = 8;
+    const boardEl = document.getElementById('chess-board');
+    let boardState = Array(64).fill(null);
+    let dragSource = null;   // { index, fromTray, symbol }
+    let selectedCell = null;
+
+    const CLASSIC = [
+      '♜','♞','♝','♛','♚','♝','♞','♜',
+      '♟','♟','♟','♟','♟','♟','♟','♟',
+      '','','','','','','','',
+      '','','','','','','','',
+      '','','','','','','','',
+      '','','','','','','','',
+      '♙','♙','♙','♙','♙','♙','♙','♙',
+      '♖','♘','♗','♕','♔','♗','♘','♖',
+    ];
+
+    const TRAY_PIECES = ['♔','♕','♖','♗','♘','♙','♚','♛','♜','♝','♞','♟'];
+
+    function buildBoard() {
+      boardEl.innerHTML = '';
+      for (let i = 0; i < 64; i++) {
+        const row = Math.floor(i / 8);
+        const col = i % 8;
+        const isLight = (row + col) % 2 === 0;
+        const cell = document.createElement('div');
+        cell.className = 'board-cell ' + (isLight ? 'light' : 'dark');
+        cell.dataset.index = i;
+
+        if (boardState[i]) {
+          const span = document.createElement('span');
+          span.className = 'piece-on-board';
+          span.textContent = boardState[i];
+          span.draggable = true;
+          span.addEventListener('dragstart', e => {
+            dragSource = { index: i, fromTray: false, symbol: boardState[i] };
+            setTimeout(() => span.style.opacity = '0.3', 0);
+          });
+          span.addEventListener('dragend', () => { span.style.opacity = '1'; });
+          span.addEventListener('click', e => {
+            e.stopPropagation();
+            playClick();
+          });
+          cell.appendChild(span);
+        }
+
+        cell.addEventListener('dragover', e => { e.preventDefault(); cell.classList.add('drag-over'); });
+        cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'));
+        cell.addEventListener('drop', e => {
+          e.preventDefault();
+          cell.classList.remove('drag-over');
+          if (!dragSource) return;
+          if (!dragSource.fromTray) boardState[dragSource.index] = null;
+          boardState[i] = dragSource.symbol;
+          dragSource = null;
+          playDrop();
+          buildBoard();
+        });
+
+        cell.addEventListener('click', () => {
+          if (selectedCell !== null && selectedCell !== i && boardState[selectedCell]) {
+            boardState[i] = boardState[selectedCell];
+            boardState[selectedCell] = null;
+            selectedCell = null;
+            playDrop();
+            buildBoard();
+            return;
+          }
+          if (boardState[i]) {
+            selectedCell = (selectedCell === i) ? null : i;
+            buildBoard();
+            if (selectedCell !== null) playClick();
+          } else {
+            selectedCell = null;
+            buildBoard();
+          }
+        });
+
+        if (selectedCell === i) cell.classList.add('selected');
+        boardEl.appendChild(cell);
+      }
+    }
+
+    function buildTray() {
+      const tray = document.getElementById('piece-tray');
+      tray.innerHTML = '';
+      TRAY_PIECES.forEach(sym => {
+        const div = document.createElement('div');
+        div.className = 'tray-piece';
+        div.textContent = sym;
+        div.draggable = true;
+        div.title = 'Drag to board';
+        div.addEventListener('dragstart', () => {
+          dragSource = { fromTray: true, symbol: sym };
+          div.classList.add('dragging');
+        });
+        div.addEventListener('dragend', () => div.classList.remove('dragging'));
+        div.addEventListener('click', () => playClick());
+        tray.appendChild(div);
+      });
+    }
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      boardState = Array(64).fill(null);
+      selectedCell = null;
+      playClick();
+      buildBoard();
+    });
+
+    document.getElementById('btn-classic').addEventListener('click', () => {
+      boardState = [...CLASSIC];
+      selectedCell = null;
+      playClick();
+      buildBoard();
+    });
+
+    buildBoard();
+    buildTray();
+
+    /* ─── Chess piece data ─── */
+    const PIECE_INFO = {
+      'King':   { symbol: '♔', value: '∞', movement: 'One square in any direction', fun: 'The game ends when the King is captured — it is never removed from the board.', pattern: [0,0,0,0,0, 0,1,1,1,0, 0,1,2,1,0, 0,1,1,1,0, 0,0,0,0,0] },
+      'Queen':  { symbol: '♕', value: '9', movement: 'Any number of squares in any direction', fun: 'Historically the weakest piece — the modern Queen emerged around 1475 in Spain.', pattern: [1,0,1,0,1, 0,1,1,1,0, 1,1,2,1,1, 0,1,1,1,0, 1,0,1,0,1] },
+      'Rook':   { symbol: '♖', value: '5', movement: 'Any number of squares horizontally or vertically', fun: 'The word "rook" comes from the Persian rukh, meaning chariot.', pattern: [0,0,1,0,0, 0,0,1,0,0, 1,1,2,1,1, 0,0,1,0,0, 0,0,1,0,0] },
+      'Bishop': { symbol: '♗', value: '3', movement: 'Any number of squares diagonally', fun: 'A Bishop always stays on squares of the same color it started on.', pattern: [1,0,0,0,1, 0,1,0,1,0, 0,0,2,0,0, 0,1,0,1,0, 1,0,0,0,1] },
+      'Knight': { symbol: '♘', value: '3', movement: 'L-shape: two squares in one direction then one perpendicular', fun: 'The Knight is the only piece that can jump over other pieces.', pattern: [0,1,0,1,0, 1,0,0,0,1, 0,0,2,0,0, 1,0,0,0,1, 0,1,0,1,0] },
+      'Pawn':   { symbol: '♙', value: '1', movement: 'One square forward; two on first move; captures diagonally', fun: 'A Pawn that reaches the other side of the board can become any piece — even a second Queen.', pattern: [0,0,0,0,0, 0,0,1,0,0, 0,0,2,0,0, 0,0,0,0,0, 0,0,0,0,0] },
+    };
+
+    /* ─── Gallery Cards ─── */
     const jsonUrl = 'https://static-conf.vercel.app/go/chess';
 
-    // Helper to create elements with attributes in one go
     function el(tag, attrs = {}, text = '') {
       const e = document.createElement(tag);
       Object.assign(e, attrs);
@@ -108,62 +716,136 @@
       return e;
     }
 
+    function makeMovementGrid(pattern) {
+      const grid = el('div', { className: 'movement-grid' });
+      pattern.forEach(v => {
+        const c = el('div', { className: 'mv-cell' + (v === 2 ? ' origin' : v === 1 ? ' move' : '') });
+        grid.appendChild(c);
+      });
+      return grid;
+    }
+
+    function buildCard(pawn) {
+      const info = PIECE_INFO[pawn.name] || {};
+      const wrapper = el('div', { className: 'flip-wrapper' });
+      const inner   = el('div', { className: 'flip-inner' });
+
+      /* — Front — */
+      const front = el('div', { className: 'card-face card-front' });
+
+      const imgWrap = el('div', { className: 'piece-img-wrap' });
+      const mainImg = el('img', {
+        src: pawn.image, alt: pawn.name,
+        loading: 'lazy', decoding: 'async',
+        className: 'main-img',
+      });
+      mainImg.addEventListener('error', () => {
+        mainImg.style.display = 'none';
+        imgWrap.textContent = info.symbol || '♟';
+        imgWrap.style.fontSize = '52px';
+      });
+      imgWrap.appendChild(mainImg);
+
+      const title = el('h2', {}, pawn.name);
+      const desc  = el('p',  { className: 'desc' }, pawn.description);
+
+      const exRow = el('div', { className: 'examples-row' });
+      (pawn.examples || []).slice(0, 3).forEach(url => {
+        const img = el('img', {
+          src: url, alt: pawn.name + ' variation',
+          loading: 'lazy', decoding: 'async',
+        });
+        img.addEventListener('error', () => img.style.display = 'none');
+        exRow.appendChild(img);
+      });
+
+      const cue = el('p', { className: 'flip-cue' }, 'Click to reveal');
+      front.append(imgWrap, title, desc, exRow, cue);
+
+      /* — Back — */
+      const back = el('div', { className: 'card-face card-back' });
+      const backTitle = el('div', { className: 'back-title' }, pawn.name + ' — Details');
+
+      const valRow = el('div', { className: 'info-row' });
+      valRow.appendChild(el('span', { className: 'info-label' }, 'Point value'));
+      valRow.appendChild(el('span', { className: 'info-value' }, info.value ? info.value + ' points' : '—'));
+
+      const movRow = el('div', { className: 'info-row' });
+      movRow.appendChild(el('span', { className: 'info-label' }, 'Movement'));
+      movRow.appendChild(el('span', { className: 'info-value' }, info.movement || '—'));
+
+      const gridRow = el('div', { className: 'info-row' });
+      gridRow.appendChild(el('span', { className: 'info-label' }, 'Move pattern'));
+      if (info.pattern) gridRow.appendChild(makeMovementGrid(info.pattern));
+
+      const funRow = el('div', { className: 'info-row' });
+      funRow.appendChild(el('span', { className: 'info-label' }, 'Did you know?'));
+      funRow.appendChild(el('span', { className: 'info-value' }, info.fun || ''));
+
+      const addBtn = el('button', { className: 'drag-btn' }, '+ Add to board');
+      addBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const sym = info.symbol;
+        if (!sym) return;
+        const emptyIdx = boardState.findIndex(v => !v);
+        if (emptyIdx === -1) return;
+        boardState[emptyIdx] = sym;
+        playDrop();
+        buildBoard();
+        document.getElementById('chess-board').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+
+      back.append(backTitle, valRow, movRow, gridRow, funRow, addBtn);
+
+      inner.append(front, back);
+      wrapper.appendChild(inner);
+
+      wrapper.addEventListener('click', () => {
+        wrapper.classList.toggle('flipped');
+        playFlip();
+      });
+
+      /* Drag from card to board */
+      wrapper.draggable = true;
+      wrapper.addEventListener('dragstart', e => {
+        if (info.symbol) {
+          dragSource = { fromTray: true, symbol: info.symbol };
+        }
+      });
+
+      return wrapper;
+    }
+
     async function loadPawns() {
-      const pawnGrid = document.getElementById('pawn-grid');
-      const errorElement = document.getElementById('error');
+      const pawnGrid   = document.getElementById('pawn-grid');
+      const errorEl    = document.getElementById('error');
+      const controller = new AbortController();
+      const timeout    = setTimeout(() => controller.abort(), 8000);
 
       try {
-        const response = await fetch(jsonUrl);
-        if (!response.ok) throw new Error('Network response was not ok');
-        const pawns = await response.json();
+        const res = await fetch(jsonUrl, { signal: controller.signal });
+        clearTimeout(timeout);
+        if (!res.ok) throw new Error('Network response was not ok');
+        const pawns = await res.json();
 
-        // 3. DocumentFragment: Batch updates to prevent multiple reflows
-        
-        const fragment = document.createDocumentFragment();
+        if (!pawns.length) {
+          pawnGrid.innerHTML = '<p style="color:var(--muted);text-align:center;width:100%">No pieces found.</p>';
+          return;
+        }
 
-        pawns.forEach(pawn => {
-          const card = el('div', { className: 'pawn-card' });
-          
-          // Main Image with Performance Attributes
-          const mainImg = el('img', {
-            src: pawn.image,
-            alt: pawn.name,
-            loading: 'lazy',     // Only load when visible
-            decoding: 'async',   // Don't block UI thread
-            onerror: function() { this.src = 'https://via.placeholder.com/100?text=Chess'; }
-          });
-
-          const title = el('h2', {}, pawn.name);
-          const desc = el('p', {}, pawn.description);
-          const exampleContainer = el('div', { className: 'examples' });
-
-          pawn.examples.forEach(exUrl => {
-            const exImg = el('img', {
-              src: exUrl,
-              alt: `${pawn.name} variation`,
-              loading: 'lazy',
-              decoding: 'async',
-              onerror: function() { this.src = 'https://via.placeholder.com/80?text=Alt'; }
-            });
-            exampleContainer.appendChild(exImg);
-          });
-
-          card.append(mainImg, title, desc, exampleContainer);
-          fragment.appendChild(card);
-        });
-
-        // Clear skeletons and inject fragment at once
+        const frag = document.createDocumentFragment();
+        pawns.forEach(p => frag.appendChild(buildCard(p)));
         pawnGrid.innerHTML = '';
-        pawnGrid.appendChild(fragment);
+        pawnGrid.appendChild(frag);
 
-      } catch (error) {
+      } catch (err) {
+        clearTimeout(timeout);
         pawnGrid.innerHTML = '';
-        errorElement.textContent = 'Failed to load: ' + error.message;
-        errorElement.style.display = 'block';
+        errorEl.textContent = 'Failed to load: ' + err.message;
+        errorEl.style.display = 'block';
       }
     }
 
-    // Use DOMContentLoaded for faster execution than window.onload
     document.addEventListener('DOMContentLoaded', loadPawns);
   </script>
 </body>
